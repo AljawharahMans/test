@@ -154,7 +154,7 @@
         const shareLink = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
         localStorage.setItem("shareLink", shareLink);
 
-        alert("تم إنشاء الجلسة! شارك الرابط مع من تريد.");
+        alert("تم إنشاء الجلسة!");
         window.location.href = 'tahadow.html';
       } catch (err) {
         console.error("خطأ في إنشاء الجلسة:", err);
