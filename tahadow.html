@@ -43,6 +43,7 @@
 
   <button onclick="saveGroup()">حفظ المجموعة</button>
   <button onclick="goToConflictsPage()">الانتقال للقيود</button>
+  <p id="sessionLink"></p>
 
   <script>
     let currentNames = [];
@@ -95,17 +96,51 @@
     }
 
     // دالة لحفظ الأسماء في localStorage
-    function saveGroup() {
+    async function saveGroup() {
       if (currentNames.length < 2) {
         alert("يجب إضافة اسمين على الأقل.");
         return;
       }
 
       localStorage.setItem("names", JSON.stringify(currentNames));
+      await updateSession();
       alert("تم حفظ المجموعة بنجاح!");
+      const shareLink = localStorage.getItem("shareLink");
+      document.getElementById("sessionLink").innerHTML =
+          `<strong>رابط الجلسة:</strong> <a href="${shareLink}" target="_blank">${shareLink}</a>`;
     }
 
-    
+    async function updateSession() {
+      const sessionId = localStorage.getItem("sessionId");
+      const JSONBIN_URL = localStorage.getItem("JSONBIN_URL");
+      const JSONBIN_API_KEY = localStorage.getItem("JSONBIN_API_KEY");
+      const names = JSON.parse(localStorage.getItem("names"));
+      const availableNames = JSON.parse(localStorage.getItem("availableNames"));
+      const conflicts = JSON.parse(localStorage.getItem("conflicts"));
+      const drawnBy = JSON.parse(localStorage.getItem("drawnBy"));
+      if (!sessionId) return;
+
+      const updatedData = {
+        names,
+        availableNames,
+        conflicts,
+        drawnBy
+      };
+
+      try {
+        await fetch(`${JSONBIN_URL}/${sessionId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_API_KEY
+          },
+          body: JSON.stringify(updatedData)
+        });
+      } catch (err) {
+        console.error("فشل تحديث الجلسة:", err);
+      }
+    }
+
     function goToConflictsPage() {
       if (currentNames.length < 2) {
         alert("يجب إضافة اسمين على الأقل قبل إضافة القيود.");
