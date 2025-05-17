@@ -172,7 +172,7 @@
 
         drawBtn.style.display = "inline-block";
         names = data.names || [];
-        availableNames = data.availableNames || [];
+        availableNames = data.availableNames || names ||[];
         conflicts = data.conflicts || [];
         drawnBy = data.drawnBy || [];
 
