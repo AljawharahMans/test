@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تخزين البيانات في localStorage</title>
+</head>
+<body>
+  <h2>أدخل اسمك:</h2>
+  <input type="text" id="nameInput" />
+  <button onclick="saveName()">احفظ</button>
+  <button onclick="loadName()">اعرض الاسم المحفوظ</button>
+  <p id="output"></p>
+
+  <script>
+    function saveName() {
+      let name = document.getElementById("nameInput").value;
+      localStorage.setItem("storedName", name);
+      alert("تم حفظ الاسم!");
+    }
+
+    function loadName() {
+      let savedName = localStorage.getItem("storedName");
+      if (savedName) {
+        document.getElementById("output").innerText = "الاسم المحفوظ هو: " + savedName;
+      } else {
+        document.getElementById("output").innerText = "لا يوجد اسم محفوظ.";
+      }
+    }
+  </script>
+</body>
+</html>
