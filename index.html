@@ -104,10 +104,10 @@
     localStorage.setItem("JSONBIN_URL", JSONBIN_URL);
 
     let sessionId = null;
-    const names = JSON.parse(localStorage.getItem("names")) || [];
-    const availableNames = JSON.parse(localStorage.getItem("availableNames")) || [];
-    const conflicts = JSON.parse(localStorage.getItem("conflicts")) || [];
-    const drawnBy = JSON.parse(localStorage.getItem("drawnBy")) || [];
+    let names = JSON.parse(localStorage.getItem("names")) || [];
+    let availableNames = JSON.parse(localStorage.getItem("availableNames")) || [];
+    let conflicts = JSON.parse(localStorage.getItem("conflicts")) || [];
+    let drawnBy = JSON.parse(localStorage.getItem("drawnBy")) || [];
 
     function getSessionIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
