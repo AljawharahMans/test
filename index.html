@@ -70,7 +70,6 @@
   </style>
 </head>
 <body>
-<h2 id="welcome"></h2>
   <h1>🎉 أهلاً بكم في عالم تهادوا 🎉</h1>
   <button class="start-btn" onclick="start()">ابدأ رحلتنا 🎁</button>
 
@@ -123,11 +122,8 @@
         userId = generateUUID();
         localStorage.setItem("userId", userId);
         console.log("مرحبًا بك لأول مرة!");
-        document.getElementById("welcome").innerText = "مرحبًا بك لأول مرة!";
-
       } else {
         // زيارة متكررة
-        document.getElementById("welcome").innerText = "مرحبًا بعودتك! معرفك: " + userId;
         console.log("مرحبًا بعودتك! معرفك: " + userId);
       }
     }
