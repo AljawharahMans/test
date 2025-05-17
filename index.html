@@ -71,7 +71,7 @@
 </head>
 <body>
   <h1>🎉 أهلاً بكم في عالم تهادوا 🎉</h1>
-  <button class="start-btn" onclick="start()">ابدأ رحلتنا 🎁</button>
+  <button class="start-btn" onclick="createSession()">ابدأ رحلتنا 🎁</button>
 
   <!-- Fake Fireworks -->
   <div class="firework" style="top:20%; left:15%; animation-delay:0s;"></div>
@@ -79,17 +79,9 @@
   <div class="firework" style="top:50%; left:40%; animation-delay:0.5s;"></div>
   <div class="firework" style="top:70%; left:60%; animation-delay:1.5s;"></div>
   <div class="firework" style="top:85%; left:20%; animation-delay:2s;"></div>
-
-  <script>
-    function start() {
-      window.location.href = 'tahadow.html'; // غيريها حسب اسم صفحتك الأولى
-      }
-      
-    
-  </script>
   
   
-  <button class="start-btn" onclick="start()">اسحب 🎁</button>
+  <button id="drawBtn" class="start-btn" style="display: none;" onclick="goToDrawPage()">اسحب 🎁</button>
 
   <!-- Fake Fireworks -->
   <div class="firework" style="top:20%; left:15%; animation-delay:0s;"></div>
@@ -106,29 +98,94 @@
   
   </script>
   <script>
-    function generateUUID() {
-      // توليد معرف فريد (نسخة مبسطة)
-      return 'xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, function(c) {
-        let r = Math.random() * 16 | 0;
-        let v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
+    const JSONBIN_API_KEY = "$2a$10$RLEfF8q3xPbHAbCBAEg7B.T1oFv2mi8mh/jX07kDDDgkNrZq3fNYW";
+    const JSONBIN_URL = "https://api.jsonbin.io/v3/b";
+    localStorage.setItem("JSONBIN_API_KEY", JSONBIN_API_KEY);
+    localStorage.setItem("JSONBIN_URL", JSONBIN_URL);
+
+    let sessionId = null;
+    const names = JSON.parse(localStorage.getItem("names")) || [];
+    const availableNames = JSON.parse(localStorage.getItem("availableNames")) || [];
+    const conflicts = JSON.parse(localStorage.getItem("conflicts")) || [];
+    const drawnBy = JSON.parse(localStorage.getItem("drawnBy")) || [];
+
+    function getSessionIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("session");
     }
 
-    function identifyUser() {
-      let userId = localStorage.getItem("userId");
-      if (!userId) {
-        // أول زيارة للمستخدم
-        userId = generateUUID();
-        localStorage.setItem("userId", userId);
-        console.log("مرحبًا بك لأول مرة!");
-      } else {
-        // زيارة متكررة
-        console.log("مرحبًا بعودتك! معرفك: " + userId);
+    async function loadSession(id) {
+      try {
+        const res = await fetch(`${JSONBIN_URL}/${id}/latest`, {
+          headers: { "X-Master-Key": JSONBIN_API_KEY }
+        });
+        const data = await res.json();
+        return data.record;
+      } catch (err) {
+        console.error("فشل تحميل الجلسة:", err);
+        alert("تعذر تحميل الجلسة. تحقق من الرابط أو المفتاح.");
+        return null;
       }
     }
 
-    identifyUser();
+    async function createSession() {
+      const initialData = {
+        names: names,
+        availableNames: [...names],
+        conflicts: conflicts,
+        drawnBy: drawnBy
+      };
+
+      try {
+        const res = await fetch(JSONBIN_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_API_KEY,
+            "X-Bin-Private": false
+          },
+          body: JSON.stringify(initialData)
+        });
+
+        const data = await res.json();
+        sessionId = data.metadata.id;
+        localStorage.setItem("sessionId", sessionId);
+
+        const shareLink = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
+        localStorage.setItem("shareLink", shareLink);
+
+        alert("تم إنشاء الجلسة! شارك الرابط مع من تريد.");
+        window.location.href = 'tahadow.html';
+      } catch (err) {
+        console.error("خطأ في إنشاء الجلسة:", err);
+        alert("فشل في إنشاء الجلسة.");
+      }
+    }
+
+    (async function init() {
+      sessionId = getSessionIdFromUrl();
+      localStorage.setItem("sessionId", sessionId);
+
+      if (sessionId) {
+        const data = await loadSession(sessionId);
+        if (!data) return;
+
+        drawBtn.style.display = "inline-block";
+        names = data.names || [];
+        availableNames = data.availableNames || [];
+        conflicts = data.conflicts || [];
+        drawnBy = data.drawnBy || [];
+
+        localStorage.setItem("names", JSON.stringify(names));
+        localStorage.setItem("availableNames", JSON.stringify(availableNames));
+        localStorage.setItem("conflicts", JSON.stringify(conflicts));
+        localStorage.setItem("drawnBy", JSON.stringify(drawnBy));
+        
+      } else {
+        // إخفاء الزر
+        drawBtn.style.display = "none";
+      }
+    })();
   </script>
 
 </body>
