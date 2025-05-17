@@ -31,11 +31,10 @@
 
   <ul id="participantsList"></ul>
 
-  <button onclick="startDraw()">ابدأ السحب</button>
+  <button onclick="validate()">ابدأ السحب</button>
 
   <script>
     const names = JSON.parse(localStorage.getItem('names')) || [];
-    const conflicts = JSON.parse(localStorage.getItem('conflicts')) || [];
 
     if (names.length === 0) {
       alert("لا توجد بيانات للمجموعة. يجب إضافة الأسماء أولاً.");
@@ -52,38 +51,13 @@
       });
     }
 
-    function startDraw() {
+    function validate() {
       if (names.length < 2) {
         alert("يجب أن تحتوي المجموعة على شخصين على الأقل.");
         return;
       }
 
-      let shuffledNames = [...names];
-      shuffledNames = shuffledNames.sort(() => Math.random() - 0.5);
-
-      let assignments = {};
-      for (let i = 0; i < names.length; i++) {
-        let assignedPerson;
-        do {
-          assignedPerson = shuffledNames[Math.floor(Math.random() * names.length)];
-        } while (names[i] === assignedPerson || isConflict(names[i], assignedPerson)); 
-        assignments[names[i]] = assignedPerson;
-      }
-
-      const eventData = {
-        names: names,
-        assignments: assignments,
-        drawStatus: {}
-      };
-      localStorage.setItem('eventData', JSON.stringify(eventData));
       window.location.href = "draw.html";
-    }
-
-    function isConflict(p1, p2) {
-      return conflicts.some(conflict => {
-        return (conflict.participant1 === p1 && conflict.participant2 === p2) ||
-               (conflict.participant1 === p2 && conflict.participant2 === p1);
-      });
     }
 
     renderList();
