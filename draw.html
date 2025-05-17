@@ -50,7 +50,7 @@
     const participantSelect = document.getElementById('participantSelect');
     const resultDiv = document.getElementById('result');
     const allNames = JSON.parse(localStorage.getItem("names"));
-    const allConflicts = JSON.parse(localStorage.getItem("conflicts"));
+    const allConflicts = JSON.parse(localStorage.getItem("conflicts")) || [];
     if (!localStorage.getItem("availableNames")) {
       localStorage.setItem("availableNames", JSON.stringify(allNames));
     }
@@ -59,6 +59,7 @@
     }
 
     participantSelect.innerHTML = ''; // إفراغ القائمة
+    
     allNames.forEach(name => {
       const option = document.createElement('option');
       option.value = name;
@@ -66,27 +67,7 @@
       participantSelect.appendChild(option);
     });
     
-
-    function performDraw() {
-
-
-      // عرض النتيجة
-      resultDiv.innerHTML = `
-        <p>🎉 تهانينا ${selectedName}!</p>
-        <p>أنت ستُهدي: <strong>${assignedPerson}</strong> 🎁</p>
-        <p>حد الهدية: <strong>${eventData.budget}</strong></p>
-      `;
-
-      // تحديث حالة السحب
-      eventData.drawStatus[selectedName] = true;
-      localStorage.setItem('eventData', JSON.stringify(eventData));
-      
-      // تعطيل الاختيارات
-      participantSelect.disabled = true;
-      document.querySelector('.btn-draw').disabled = true;
-      
-    }
-    function drawRandomName() {
+    async function drawRandomName() {
       const currentName = participantSelect.value;
       if (!currentName) {
         alert("يرجى اختيار اسمك.");
@@ -94,10 +75,12 @@
       }
 
       const drawnBy = JSON.parse(localStorage.getItem("drawnBy")) || [];
+      console.log(drawnBy)
       if (drawnBy.includes(currentName)) {
         resultDiv.textContent = "لقد قمت بالسحب مسبقًا.";
         return;
       }
+      
       const availableNames = JSON.parse(localStorage.getItem("availableNames")) || [];
 
       // أسماء لا يمكن سحبها لهذا المستخدم
@@ -140,11 +123,44 @@
       drawnBy.push(currentName);
       localStorage.setItem("drawnBy", JSON.stringify(drawnBy));
 
+      await updateSession();
+
       resultDiv.innerHTML = `
         <p>🎉 تهانينا ${currentName}!</p>
         <p>أنت ستُهدي: <strong>${drawnName}</strong> 🎁</p>
         <p>حد الهدية: <strong></strong></p>
       `;
+    }
+
+    async function updateSession() {
+      const sessionId = localStorage.getItem("sessionId");
+      const JSONBIN_URL = localStorage.getItem("JSONBIN_URL");
+      const JSONBIN_API_KEY = localStorage.getItem("JSONBIN_API_KEY");
+      const names = JSON.parse(localStorage.getItem("names"));
+      const availableNames = JSON.parse(localStorage.getItem("availableNames"));
+      const conflicts = JSON.parse(localStorage.getItem("conflicts"));
+      const drawnBy = JSON.parse(localStorage.getItem("drawnBy"));
+      if (!sessionId) return;
+
+      const updatedData = {
+        names,
+        availableNames,
+        conflicts,
+        drawnBy
+      };
+
+      try {
+        await fetch(`${JSONBIN_URL}/${sessionId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_API_KEY
+          },
+          body: JSON.stringify(updatedData)
+        });
+      } catch (err) {
+        console.error("فشل تحديث الجلسة:", err);
+      }
     }
   </script>
 
