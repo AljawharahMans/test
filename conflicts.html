@@ -118,18 +118,51 @@
       });
     }
 
-    function saveConflicts() {
+    async function saveConflicts() {
       if (conflicts.length === 0) {
         alert("أضف على الأقل قيداً واحداً.");
         return;
       }
 
       localStorage.setItem("conflicts", JSON.stringify(conflicts));
+      await updateSession();
+
       window.location.href = "ready.html";
     }
 
     function continueWithoutConflicts() {
       window.location.href = "ready.html";
+    }
+
+    async function updateSession() {
+      const sessionId = localStorage.getItem("sessionId");
+      const JSONBIN_URL = localStorage.getItem("JSONBIN_URL");
+      const JSONBIN_API_KEY = localStorage.getItem("JSONBIN_API_KEY");
+      const names = JSON.parse(localStorage.getItem("names"));
+      const availableNames = JSON.parse(localStorage.getItem("availableNames"));
+      const conflicts = JSON.parse(localStorage.getItem("conflicts"));
+      const drawnBy = JSON.parse(localStorage.getItem("drawnBy"));
+      if (!sessionId) return;
+
+      const updatedData = {
+        names,
+        availableNames,
+        conflicts,
+        drawnBy
+      };
+
+      try {
+        await fetch(`${JSONBIN_URL}/${sessionId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Master-Key": JSONBIN_API_KEY
+          },
+          body: JSON.stringify(updatedData)
+        });
+      } catch (err) {
+        console.error("فشل تحديث الجلسة:", err);
+      }
     }
   </script>
 </body>
