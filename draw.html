@@ -41,46 +41,34 @@
     <label for="participantSelect">اختر اسمك:</label><br><br>
     <select id="participantSelect"></select><br><br>
 
-    <button class="btn-draw" onclick="performDraw()">اسحب</button>
+    <button class="btn-draw" onclick="drawRandomName()">اسحب</button>
 
     <div class="result" id="result"></div>
   </div>
 
   <script>
-    const eventData = JSON.parse(localStorage.getItem('eventData'));
     const participantSelect = document.getElementById('participantSelect');
     const resultDiv = document.getElementById('result');
-
-    if (!eventData || !eventData.assignments) {
-      alert("لا توجد بيانات للسحب! تأكد أنك ضغطت ابدأ السحب من صفحة الاستعداد.");
-      window.location.href = 'ready.html';
+    const allNames = JSON.parse(localStorage.getItem("names"));
+    const allConflicts = JSON.parse(localStorage.getItem("conflicts"));
+    if (!localStorage.getItem("availableNames")) {
+      localStorage.setItem("availableNames", JSON.stringify(allNames));
+    }
+    if (!localStorage.getItem("drawnBy")) {
+      localStorage.setItem("drawnBy", JSON.stringify([]));
     }
 
-    function populateParticipants() {
-      participantSelect.innerHTML = ''; // إفراغ القائمة
-      eventData.names.forEach(name => {
-        if (!eventData.drawStatus[name]) { // التأكد من أن الشخص لم يسحب
-          const option = document.createElement('option');
-          option.value = name;
-          option.textContent = name;
-          participantSelect.appendChild(option);
-        }
-      });
-    }
+    participantSelect.innerHTML = ''; // إفراغ القائمة
+    allNames.forEach(name => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      participantSelect.appendChild(option);
+    });
+    
 
     function performDraw() {
-      const selectedName = participantSelect.value;
 
-      if (!selectedName) {
-        alert("اختر اسمك أولاً!");
-        return;
-      }
-
-      const assignedPerson = eventData.assignments[selectedName];
-      if (!assignedPerson) {
-        alert("لا يوجد تعيين لهذا الاسم.");
-        return;
-      }
 
       // عرض النتيجة
       resultDiv.innerHTML = `
@@ -96,9 +84,68 @@
       // تعطيل الاختيارات
       participantSelect.disabled = true;
       document.querySelector('.btn-draw').disabled = true;
+      
     }
+    function drawRandomName() {
+      const currentName = participantSelect.value;
+      if (!currentName) {
+        alert("يرجى اختيار اسمك.");
+        return;
+      }
 
-    populateParticipants();
+      const drawnBy = JSON.parse(localStorage.getItem("drawnBy")) || [];
+      if (drawnBy.includes(currentName)) {
+        resultDiv.textContent = "لقد قمت بالسحب مسبقًا.";
+        return;
+      }
+      const availableNames = JSON.parse(localStorage.getItem("availableNames")) || [];
+
+      // أسماء لا يمكن سحبها لهذا المستخدم
+      const forbidden = new Set();
+      forbidden.add(currentName); // لا يسحب نفسه
+
+      // تحليل التعارضات
+      allConflicts.forEach(conflict => {
+        if (
+          conflict.conflictType === "One-way" &&
+          conflict.participant1 === currentName
+        ) {
+          //participant1 لا يسحب participant2
+          forbidden.add(conflict.participant2);
+        } else if (
+          conflict.conflictType === "Two-way" &&
+          (conflict.participant1 === currentName || conflict.participant2 === currentName)
+        ) {
+          // كلا الطرفين لا يسحب الآخر
+          forbidden.add(conflict.participant1);
+          forbidden.add(conflict.participant2);
+        }
+      });
+
+      // فلترة الأسماء المسموحة
+      const candidates = availableNames.filter(name => !forbidden.has(name));
+
+      if (candidates.length === 0) {
+        resultDiv.textContent = "لا توجد أسماء متاحة للسحب.";
+        return;
+      }
+
+      const drawnName = candidates[Math.floor(Math.random() * candidates.length)];
+
+      // تحديث القائمة المتاحة للسحب
+      const updatedAvailable = availableNames.filter(name => name !== drawnName);
+      localStorage.setItem("availableNames", JSON.stringify(updatedAvailable));
+
+      // تسجيل من قام بالسحب
+      drawnBy.push(currentName);
+      localStorage.setItem("drawnBy", JSON.stringify(drawnBy));
+
+      resultDiv.innerHTML = `
+        <p>🎉 تهانينا ${currentName}!</p>
+        <p>أنت ستُهدي: <strong>${drawnName}</strong> 🎁</p>
+        <p>حد الهدية: <strong></strong></p>
+      `;
+    }
   </script>
 
 </body>
