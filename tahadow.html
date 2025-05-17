@@ -42,7 +42,7 @@
   <ul id="namesList"></ul>
 
   <button onclick="saveGroup()">حفظ المجموعة</button>
-  <button id="ConflictBtn" style="display: none;" onclick="goToConflictsPage()">الانتقال للقيود</button>
+  <button id="conflictBtn" style="display: none;" onclick="goToConflictsPage()">الانتقال للقيود</button>
   <p id="sessionLink"></p>
 
   <script>
@@ -99,7 +99,7 @@
     async function saveGroup() {
       if (currentNames.length < 2) {
         alert("يجب إضافة اسمين على الأقل.");
-        drawBtn.style.display = "none";
+        conflictBtn.style.display = "none";
         return;
       }
 
@@ -109,7 +109,7 @@
       const shareLink = localStorage.getItem("shareLink");
       document.getElementById("sessionLink").innerHTML =
           `<strong>رابط الجلسة:</strong> <a href="${shareLink}" target="_blank">${shareLink}</a>`;
-      drawBtn.style.display = "inline-block";
+      conflictBtn.style.display = "inline-block";
     }
 
     async function updateSession() {
