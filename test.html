@@ -2,30 +2,35 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>تخزين البيانات في localStorage</title>
+  <title>التعرف على المستخدم</title>
 </head>
 <body>
-  <h2>أدخل اسمك:</h2>
-  <input type="text" id="nameInput" />
-  <button onclick="saveName()">احفظ</button>
-  <button onclick="loadName()">اعرض الاسم المحفوظ</button>
-  <p id="output"></p>
+  <h2 id="welcome"></h2>
 
   <script>
-    function saveName() {
-      let name = document.getElementById("nameInput").value;
-      localStorage.setItem("storedName", name);
-      alert("تم حفظ الاسم!");
+    function generateUUID() {
+      // توليد معرف فريد (نسخة مبسطة)
+      return 'xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, function(c) {
+        let r = Math.random() * 16 | 0;
+        let v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
     }
 
-    function loadName() {
-      let savedName = localStorage.getItem("storedName");
-      if (savedName) {
-        document.getElementById("output").innerText = "الاسم المحفوظ هو: " + savedName;
+    function identifyUser() {
+      let userId = localStorage.getItem("userId");
+      if (!userId) {
+        // أول زيارة للمستخدم
+        userId = generateUUID();
+        localStorage.setItem("userId", userId);
+        document.getElementById("welcome").innerText = "مرحبًا بك لأول مرة!";
       } else {
-        document.getElementById("output").innerText = "لا يوجد اسم محفوظ.";
+        // زيارة متكررة
+        document.getElementById("welcome").innerText = "مرحبًا بعودتك! معرفك: " + userId;
       }
     }
+
+    identifyUser();
   </script>
 </body>
 </html>
